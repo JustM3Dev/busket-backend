@@ -37,11 +37,10 @@ export class List extends Model {
 }
 
 List.init({
-  order: DataTypes.INTEGER,
+  owner: DataTypes.UUIDV4,
   name: DataTypes.STRING,
   starred: DataTypes.BOOLEAN,
   items: DataTypes.JSON,
-  share_id: DataTypes.UUIDV4,
   list_id: DataTypes.UUIDV4,
 }, {
   sequelize,
@@ -51,17 +50,16 @@ List.init({
   updatedAt: 'updated_at',
 });
 
-export async function newList (order?: number, name?: string, starred?: boolean, items?: Record<string, unknown>, share_id?: string): Promise<any> {
+export async function newList (user_id: string, name?: string, starred?: boolean, items?: Record<string, unknown>, list_id?: string): Promise<any> {
   return new Promise<any>((resolve, reject) => {
     List.sync(/* { force: true } */).then(async () => {
       const uuid = uuidv4();
       const res = await List.create({
-        order: order === null ? 0 : order,
-        name: name === null ? '' : name,
-        starred: starred === null ? false : starred,
-        items: items === null ? [] : items,
-        share_id: share_id === null ? '' : share_id,
-        list_id: uuid,
+        owner: user_id,
+        name: name ?? '',
+        starred: starred ?? false,
+        items: items ?? [],
+        list_id: list_id ?? uuid,
       }).catch(reject);
       console.log(res);
       resolve(uuid);

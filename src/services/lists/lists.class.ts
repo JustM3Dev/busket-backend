@@ -1,6 +1,15 @@
 import { NullableId, Params, ServiceMethods } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { customGetList, flushDB, getList, IList, List, newList, RequestError } from '../../db/sequelize';
+import {
+  createRelation,
+  customGetList,
+  flushDB,
+  getList, getRelations,
+  IList,
+  List,
+  newList,
+  RequestError,
+} from '../../db/sequelize';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Data {
@@ -18,15 +27,29 @@ export class Lists implements ServiceMethods<Data> {
     this.app = app;
   }
 
+  async checkUser (list_id: string, user_id: string): Promise<boolean> {
+    const rel = await getRelations(user_id);
+    let inLib = false;
+    Object.keys(rel).forEach((item) => {
+      if (rel[item].list_id === list_id) inLib = true;
+    });
+    return inLib;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async find (params?: Params): Promise<Data[]> {
-    console.log(params?.query?.options);
-    return await customGetList(params?.query?.options);
+    const rel = await getRelations(params?.user?.uuid);
+
+    const lists = [];
+    for (const key of Object.keys(rel)) {
+      lists.push(await getList(rel[key].dataValues.list_id));
+    }
+
+    return lists;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async get (list_id: string, params?: Params): Promise<Data> {
-    console.log(await customGetList());
     return await getList(list_id);
   }
 
@@ -38,9 +61,14 @@ export class Lists implements ServiceMethods<Data> {
       }
     });
 
-    await newList(0, data.name, data.starred, {
+
+    const uuid = uuidv4();
+    await newList(params?.user?.uuid, data.name, data.starred, {
       data: []
-    }, uuidv4());
+    }, uuid);
+
+    await createRelation(params?.user?.uuid, uuid, {});
+
     return { message: 'Created a new list.', data };
   }
 

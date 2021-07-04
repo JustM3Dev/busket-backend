@@ -40,7 +40,8 @@ async function runTest (): Promise<void> {
 
   const userId = uuidv4();
 
-  const uuid = await newList('test');
+  // const uuid = await newList('test');
+  const uuid = '';
   const res = await getList(uuid);
 
   test.printExpect(res.dataValues.name, 'test');
