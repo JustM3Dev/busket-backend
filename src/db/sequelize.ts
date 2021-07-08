@@ -5,6 +5,7 @@ import chalk from 'chalk';
 const sequelize = new Sequelize('sqlite:lists.sqlite', { logging: false });
 
 export class RequestError {
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   constructor (name: string, message: string, code: number, additional: any) {
     return {
       name,
@@ -16,6 +17,7 @@ export class RequestError {
 }
 
 export interface Item {
+  checked: boolean,
   name: string,
   id: string,
   list_id: string,
@@ -24,7 +26,7 @@ export interface Item {
 export interface IList {
   order: number;
   name: string;
-  starred: boolean;
+  pinned: boolean;
   items: Record<any, string>;
   share_id: string;
   list_id: string;
@@ -39,7 +41,7 @@ export class List extends Model {
 List.init({
   owner: DataTypes.UUIDV4,
   name: DataTypes.STRING,
-  starred: DataTypes.BOOLEAN,
+  pinned: DataTypes.BOOLEAN,
   items: DataTypes.JSON,
   list_id: DataTypes.UUIDV4,
 }, {
@@ -50,14 +52,14 @@ List.init({
   updatedAt: 'updated_at',
 });
 
-export async function newList (user_id: string, name?: string, starred?: boolean, items?: Record<string, unknown>, list_id?: string): Promise<any> {
+export async function newList (user_id: string, name?: string, pinned?: boolean, items?: Record<string, unknown>, list_id?: string): Promise<any> {
   return new Promise<any>((resolve, reject) => {
     List.sync(/* { force: true } */).then(async () => {
       const uuid = uuidv4();
       const res = await List.create({
         owner: user_id,
         name: name ?? '',
-        starred: starred ?? false,
+        pinned: pinned ?? false,
         items: items ?? [],
         list_id: list_id ?? uuid,
       }).catch(reject);
@@ -67,14 +69,14 @@ export async function newList (user_id: string, name?: string, starred?: boolean
   });
 }
 
-export async function modifyList (list_id: string, order?: number | null, name?: string | null, starred?: boolean | null, items?: Record<string, unknown> | null, share_id?: string | null): Promise<any> {
+export async function modifyList (list_id: string, order?: number | null, name?: string | null, pinned?: boolean | null, items?: Record<string, unknown> | null, share_id?: string | null): Promise<any> {
   return new Promise<any>((resolve, reject) => {
     List.sync().then(async () => {
       const list = await getList(list_id);
       List.update({
         order: order ?? list.order,
         name: name ?? list.name,
-        starred: starred ?? list.starred,
+        pinned: pinned ?? list.pinned,
         items: items ?? list.items,
         share_id: share_id ?? list.share_id,
       }, {

@@ -23,9 +23,11 @@ export class User implements ServiceMethods<Data> {
   async get (user_id: string, params?: Params): Promise<Data> {
     const sequelize = this.app.get('sequelizeClient');
     const { users } = sequelize.models;
-    const res = await users.findAll({ where: { uuid: user_id } });
+    const res = await users.findOne({ where: { uuid: user_id } });
 
-    return res.username;
+    console.log(res.dataValues.username, user_id);
+
+    return res.dataValues.username;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

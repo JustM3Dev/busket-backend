@@ -34,8 +34,7 @@ export class Listitem implements ServiceMethods<Data> {
       const list = await getList(itemData.list_id);
       if (!list) return {};
       if (!list.items.data) list.items = { data: [] };
-      list.items.data.push({ name: itemData.name, id: uuidv4() });
-      console.log('items', list.items);
+      list.items.data.push({ checked: false, name: itemData.name, id: uuidv4() });
 
       await modifyList(list.list_id, null, null, null, list.items);
       return list.items;

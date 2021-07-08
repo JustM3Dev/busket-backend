@@ -2,8 +2,6 @@ import { NullableId, Params, ServiceMethods } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
 import {
   createRelation,
-  customGetList,
-  flushDB,
   getList, getRelations,
   IList,
   List,
@@ -11,6 +9,7 @@ import {
   RequestError,
 } from '../../db/sequelize';
 import { v4 as uuidv4 } from 'uuid';
+import isUUID from 'validator/lib/isUUID';
 
 interface Data {
 }
@@ -63,7 +62,7 @@ export class Lists implements ServiceMethods<Data> {
 
 
     const uuid = uuidv4();
-    await newList(params?.user?.uuid, data.name, data.starred, {
+    await newList(params?.user?.uuid, data.name, data.pinned, {
       data: []
     }, uuid);
 
@@ -74,7 +73,6 @@ export class Lists implements ServiceMethods<Data> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async update (id: string, data: Data, params?: Params): Promise<Data> {
-    console.log(id, data);
     return new Promise((resolve, reject) => {
       List.sync().then(() => {
         List.update(data, { where: { list_id: id } }).then(resolve).catch(reject);
@@ -89,7 +87,12 @@ export class Lists implements ServiceMethods<Data> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async remove (id: NullableId, params?: Params): Promise<Data> {
-    await flushDB();
-    return { message: 'Flushed db' };
+    if (!isUUID((id as string), 4)) return Promise.reject('id has to be type of uuidv4');
+    await List.sync();
+    await List.destroy({
+      where: { list_id: id },
+    });
+
+    return { message: 'destroyed' };
   }
 }
