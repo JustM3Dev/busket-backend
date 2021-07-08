@@ -1,3 +1,7 @@
+# dbs
+busket_backend.sqlite
+lists.sqlite
+
 # Logs
 logs
 *.log
