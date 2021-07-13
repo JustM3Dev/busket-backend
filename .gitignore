@@ -2,6 +2,9 @@
 busket_backend.sqlite
 lists.sqlite
 
+# Auth
+config/default.json
+
 # Logs
 logs
 *.log
