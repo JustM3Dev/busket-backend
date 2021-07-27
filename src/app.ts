@@ -1,3 +1,4 @@
+import historyApiFallback from 'connect-history-api-fallback';
 import path from 'path';
 import favicon from 'serve-favicon';
 import compress from 'compression';
@@ -23,9 +24,19 @@ import sequelize from './sequelize';
 
 const app: Application = express(feathers());
 export type HookContext<T = any> = { app: Application } & FeathersHookContext<T>;
-
 // Load app configuration
 app.configure(configuration());
+
+const historyMiddleware = historyApiFallback({
+  verbose: false,
+  index: '/'
+});
+app.use((req, res, next) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  historyMiddleware(req, res, next);
+});
+
 // Enable security, CORS, compression, favicon and body parsing
 app.use(helmet({
   contentSecurityPolicy: false
